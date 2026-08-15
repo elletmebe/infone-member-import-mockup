@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>InfOne · 成员导入</title>
+<!-- 样式契约：直接引用设计规范包的 tokens.css（内含 fonts.css 与 remixicon.css），不复制 token 数值。
+     骨架档位：D 档（NavRail 240px 全高导轨 + 16px 画布，无 TopNav）。
+     密度：页面 comfortable，长列表区域挂 data-density="compact"。 -->
+<link rel="stylesheet" href="spec/infone-design-spec-feat-infone/infone/tokens.css">
+<style>
+/* ── 页面骨架 · D 档 ────────────────────────────────────────── */
+.app{display:flex;min-height:100vh;background:var(--color-bg);}
+.rail{width:240px;flex-shrink:0;align-self:stretch;background:var(--th-white);border-right:1px solid var(--color-border);display:flex;flex-direction:column;}
+.rail-brand{height:48px;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:.5px solid var(--th-gray-100);}
+.rail-brand img{width:20px;height:29px;}
+.rail-wm{font-family:var(--th-font-brand);font-weight:700;font-size:var(--th-text-md);letter-spacing:-.01em;white-space:nowrap;}
+.rail-nav{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:20px;padding:16px 10px;}
+.rail-group{display:flex;flex-direction:column;gap:10px;}
+.rail-heading{padding:0 10px;font-size:var(--th-text-xs);color:var(--color-fg-muted);line-height:1;white-space:nowrap;}
+.rail-list{display:flex;flex-direction:column;gap:4px;}
+.rail-item{appearance:none;border:none;text-align:left;width:100%;height:40px;padding:0 10px;display:flex;align-items:center;gap:8px;border-radius:6px;background:transparent;color:var(--color-fg);font-family:var(--th-font-cn);font-size:var(--th-text-xs);cursor:pointer;transition:background var(--th-dur-1) var(--th-ease);}
+.rail-item i{font-size:16px;flex-shrink:0;color:var(--color-fg);}
+.rail-item:hover{background:var(--th-gray-50);}
+.rail-item.active{background:var(--th-teal-50);}
+.rail-item.active i{color:var(--th-teal-600);}
+.rail-foot{border-top:1px solid var(--color-border);padding:10px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.rail-chip{appearance:none;flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border:none;border-radius:6px;background:transparent;color:var(--color-fg);font-family:var(--th-font-cn);font-size:var(--th-text-xs);cursor:pointer;transition:background var(--th-dur-1) var(--th-ease);}
+.rail-chip:hover,.rail-icon-btn:hover{background:var(--th-gray-50);}
+.rail-avatar{width:24px;height:24px;border-radius:999px;background:var(--th-pink-100);flex-shrink:0;}
+.rail-chip span.name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;}
+.rail-icon-btn{appearance:none;width:32px;height:32px;border:none;border-radius:6px;background:transparent;color:var(--color-fg);font-size:16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:background var(--th-dur-1) var(--th-ease);}
+.canvas{flex:1;min-width:0;padding:16px;display:flex;flex-direction:column;gap:16px;}
+
+/* ── 页面头 ────────────────────────────────────────────────── */
+.page-header{display:flex;flex-direction:column;gap:4px;}
+.breadcrumb{display:flex;align-items:center;gap:4px;font-size:var(--th-text-xs);color:var(--color-fg-muted);margin-bottom:2px;}
+.breadcrumb i{font-size:14px;color:var(--color-fg-subtle);}
+.breadcrumb b{color:var(--color-fg);font-weight:500;}
+.ph-row{display:flex;align-items:center;gap:10px;min-width:0;}
+.ph-title{margin:0;font-size:var(--th-text-lg);font-weight:600;line-height:1.3;color:var(--color-fg);white-space:nowrap;}
+.ph-actions{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none;}
+.ph-desc{font-size:var(--th-text-xs);color:var(--color-fg-muted);}
+
+/* ── Tabs ─────────────────────────────────────────────────── */
+.tabs{display:flex;gap:24px;border-bottom:1px solid var(--color-border);}
+.tab{appearance:none;border:none;background:transparent;cursor:pointer;padding:10px 2px;font-family:var(--th-font-cn);font-size:var(--th-text-base);font-weight:400;color:var(--color-fg-muted);border-bottom:2px solid transparent;margin-bottom:-1px;display:inline-flex;align-items:center;gap:6px;transition:color var(--th-dur-1) var(--th-ease),border-color var(--th-dur-1) var(--th-ease);}
+.tab:hover{color:var(--color-fg);}
+.tab.active{color:var(--color-fg);font-weight:600;border-bottom-color:var(--th-teal-500);}
+
+/* ── 卡片 ─────────────────────────────────────────────────── */
+.card{background:var(--color-surface-raised);border:var(--th-border-card);border-radius:var(--th-radius-md);box-shadow:var(--th-shadow-card);overflow:hidden;}
+.card-pad{padding:var(--th-card-pad);}
+.card-foot{padding:12px 16px;border-top:1px solid var(--color-border);background:var(--color-surface-inset);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.divider-b{border-bottom:1px solid var(--color-border);}
+.stack{display:flex;flex-direction:column;gap:var(--th-stack-gap);}
+.sec-title{font-size:var(--th-text-base);font-weight:600;color:var(--color-fg);}
+.sec-hint{font-size:var(--th-text-xs);color:var(--color-fg-muted);}
+.meta-2xs{font-size:var(--th-text-2xs);color:var(--color-fg-muted);}
+.muted{color:var(--color-fg-muted);}
+.subtle{color:var(--color-fg-subtle);}
+
+/* ── Button（镜像 Button 组件取值：md 40 / sm 32、6px 圆角） ── */
+.tk-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 20px;font-family:var(--th-font-cn);font-size:var(--th-text-base);font-weight:500;line-height:1;border-radius:var(--th-radius-pill);border:1px solid transparent;background:var(--th-white);color:var(--color-fg);border-color:var(--color-border);cursor:pointer;user-select:none;transition:background var(--th-dur-2) var(--th-ease),box-shadow var(--th-dur-2) var(--th-ease),opacity var(--th-dur-2) var(--th-ease);}
+.tk-btn i{font-size:16px;}
+.tk-btn--sm{height:32px;padding:0 14px;font-size:var(--th-text-xs);}
+.tk-btn--sm i{font-size:14px;}
+.tk-btn--field{height:36px;}
+.tk-btn--primary{background:var(--color-cta);color:var(--color-cta-fg);border-color:transparent;}
+.tk-btn--primary:hover:not(:disabled){box-shadow:var(--th-shadow-key);}
+.tk-btn--secondary:hover:not(:disabled),.tk-btn--ghost:hover:not(:disabled){background:var(--th-gray-50);}
+.tk-btn--ghost{background:transparent;border-color:transparent;}
+.tk-btn:disabled{opacity:.5;cursor:not-allowed;}
+.tk-link{appearance:none;border:none;background:transparent;padding:0;font-family:var(--th-font-cn);font-size:var(--th-text-xs);color:var(--color-link);cursor:pointer;white-space:nowrap;transition:opacity var(--th-dur-1) var(--th-ease);}
+.tk-link:hover{opacity:.85;}
+.tk-link--danger{color:var(--color-danger-fg);}
+
+/* ── 输入控件（镜像 TextField / Select：36px、6px 圆角、13px） ─ */
+.field{display:inline-flex;align-items:center;gap:8px;height:var(--th-ctl-h-lg);padding:0 12px;border-radius:var(--th-radius-sm);border:1px solid var(--color-border);background:var(--th-white);font-family:var(--th-font-cn);font-size:var(--th-text-base);color:var(--color-fg);transition:border-color var(--th-dur-1) var(--th-ease),box-shadow var(--th-dur-1) var(--th-ease);}
+.field i{color:var(--color-fg-muted);font-size:16px;flex-shrink:0;}
+.field input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:var(--th-font-cn);font-size:var(--th-text-base);color:var(--color-fg);}
+.field input::placeholder{color:var(--color-fg-subtle);}
+.field:focus-within{border-color:var(--color-accent);box-shadow:var(--th-ring);}
+.sel{display:inline-flex;align-items:center;justify-content:space-between;gap:8px;height:var(--th-ctl-h-lg);padding:0 12px;border-radius:var(--th-radius-sm);border:1px solid var(--color-border);background:var(--th-white);font-family:var(--th-font-cn);font-size:var(--th-text-base);color:var(--color-fg);cursor:pointer;transition:border-color var(--th-dur-1) var(--th-ease);}
+.sel:hover{border-color:var(--th-gray-200);}
+.sel i{color:var(--color-fg-muted);font-size:16px;transition:transform var(--th-dur-1) var(--th-ease);}
+.sel[aria-expanded="true"] i{transform:rotate(180deg);}
+.sel--sm{height:var(--th-ctl-h);font-size:var(--th-text-xs);padding:0 10px;}
+.dd-menu{position:fixed;z-index:var(--z-dropdown);background:var(--th-white);border:1px solid var(--color-border);border-radius:var(--th-radius-sm);box-shadow:var(--th-shadow-soft);padding:4px;max-height:220px;overflow-y:auto;display:none;}
+.dd-menu.show{display:block;}
+.dd-item{padding:8px 10px;border-radius:6px;font-size:var(--th-text-base);color:var(--color-fg);cursor:pointer;white-space:nowrap;}
+.dd-item:hover{background:var(--th-gray-50);}
+.dd-item.on{background:var(--th-teal-50);color:var(--th-teal-700);}
+.cb{appearance:none;width:14px;height:14px;border-radius:2px;border:1px solid var(--color-border);background:var(--th-white);cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;transition:background var(--th-dur-1) var(--th-ease),border-color var(--th-dur-1) var(--th-ease);}
+.cb:checked{background:var(--th-teal-500);border-color:var(--th-teal-500);}
+.cb:checked::after{content:"\eb7b";font-family:"remixicon";font-size:13px;line-height:1;color:var(--th-white);}
+.cb:disabled{cursor:not-allowed;opacity:.5;}
+
+/* ── Steps（完成 = 成功色勾 / 当前 = 品牌 / 待开始 = 灰） ───── */
+.steps{display:flex;align-items:flex-start;justify-content:center;}
+.step{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;max-width:140px;}
+.step-circle{width:24px;height:24px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--th-font-ui);font-size:var(--th-text-xs);font-weight:600;background:var(--th-gray-50);color:var(--color-fg-subtle);transition:background var(--th-dur-2) var(--th-ease),color var(--th-dur-2) var(--th-ease);}
+.step-circle i{font-size:14px;}
+.step.active .step-circle{background:var(--th-teal-200);color:var(--th-gray-900);}
+.step.done .step-circle{background:var(--color-success-bg);color:var(--color-success-fg);}
+.step-title{font-size:var(--th-text-base);color:var(--color-fg-muted);}
+.step.active .step-title{font-weight:600;color:var(--color-fg);}
+.step.done .step-title{color:var(--color-fg);}
+.step-conn{flex:0 1 96px;height:1px;margin:12px 8px 0;min-width:24px;background:var(--th-gray-100);transition:background var(--th-dur-2) var(--th-ease);}
+.step-conn.done{background:var(--th-teal-400);}
+
+/* ── 上传区（inset 面板） ─────────────────────────────────── */
+.dropzone{border:1px dashed var(--th-gray-200);border-radius:var(--th-radius-md);background:var(--color-surface-inset);padding:32px 16px;text-align:center;cursor:pointer;transition:border-color var(--th-dur-1) var(--th-ease),background var(--th-dur-1) var(--th-ease);}
+.dropzone:hover{border-color:var(--color-accent);}
+.dropzone.has-file,.dropzone.has-file:hover{cursor:default;border-color:var(--th-gray-200);}
+.dz-icon{font-size:28px;color:var(--color-fg-subtle);line-height:1;}
+.file-chip{display:inline-flex;align-items:center;gap:10px;background:var(--th-white);border:1px solid var(--color-border);border-radius:var(--th-radius-sm);padding:8px 14px;font-size:var(--th-text-base);}
+.file-chip i.ok{color:var(--color-success-solid);font-size:16px;}
+
+/* ── 构成计量条（一个总量被切开 → --color-stack-*） ────────── */
+.meter{display:flex;height:8px;border-radius:999px;overflow:hidden;background:var(--color-data-track);}
+.meter span{height:100%;transition:width var(--th-dur-2) var(--th-ease);}
+.meter-legend{display:flex;flex-wrap:wrap;gap:16px;font-size:var(--th-text-2xs);color:var(--color-fg-muted);}
+.meter-legend span.item{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.meter-legend i.sw{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+
+/* ── 表格（镜像 DataTable 取值） ──────────────────────────── */
+.tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
+.tbl thead th{background:var(--color-table-head);color:var(--color-fg-muted);font-size:var(--th-text-xs);font-weight:400;text-align:left;padding:8px 16px;border-bottom:1px solid var(--color-border);}
+.tbl tbody td{padding:var(--th-row-pad-y) 16px;height:var(--th-row-h);border-bottom:1px solid var(--color-border);vertical-align:top;font-size:var(--th-text-base);word-break:break-all;transition:background var(--th-dur-1) var(--th-ease);}
+[data-density="compact"] .tbl tbody td{font-size:var(--th-text-xs);}
+.tbl tbody tr:last-child td{border-bottom:none;}
+.tbl tbody tr:hover td{background:var(--color-row-hover);}
+.tbl tbody tr.selected td{background:var(--color-surface-selected);}
+.tbl tbody tr.diff-row:hover td,.tbl tbody tr.diff-row td{background:var(--th-white);}
+.cell-meta{font-size:var(--th-text-2xs);color:var(--color-fg-muted);margin-top:3px;line-height:1.5;}
+.table-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--color-border);font-size:var(--th-text-xs);color:var(--color-fg-muted);}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.toolbar-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+
+/* ── StatusChip ───────────────────────────────────────────── */
+.chip{height:22px;padding:0 10px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;font-family:var(--th-font-ui);font-size:var(--th-text-2xs);font-weight:500;line-height:1;white-space:nowrap;flex-shrink:0;}
+.chip .dot{width:6px;height:6px;border-radius:999px;background:currentColor;flex-shrink:0;}
+.chip--success{background:var(--color-success-bg);color:var(--color-success-fg);}
+.chip--warning{background:var(--color-warning-bg);color:var(--color-warning-fg);}
+.chip--danger{background:var(--color-danger-bg);color:var(--color-danger-fg);}
+.chip--info{background:var(--color-info-bg);color:var(--color-info-fg);}
+.chip--neutral{background:var(--th-gray-50);color:var(--color-fg-muted);}
+.badge{min-width:16px;height:16px;padding:0 5px;border-radius:999px;color:#fff;font-family:var(--th-font-ui);font-size:10px;font-weight:600;line-height:16px;text-align:center;display:inline-block;}
+.badge--warning{background:var(--color-warning-solid);}
+
+/* ── Pager ───────────────────────────────────────────────── */
+.pager{display:inline-flex;align-items:center;gap:4px;}
+.pg{appearance:none;border:none;background:transparent;border-radius:8px;min-width:32px;height:32px;padding:0 6px;font-family:var(--th-font-cn);font-size:var(--th-text-base);font-weight:500;color:var(--color-fg);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-feature-settings:"tnum";}
+.pg:hover:not(:disabled):not(.gap){background:var(--th-gray-50);}
+.pg.on{background:var(--th-teal-50);color:var(--th-teal-700);font-weight:700;}
+.pg:disabled{opacity:.35;cursor:default;}
+.pg.nav i{font-size:20px;}
+.pg.gap{color:var(--color-fg-muted);cursor:default;min-width:24px;}
+
+/* ── 指标条（镜像 MetricStrip） ───────────────────────────── */
+.ms{display:grid;grid-template-columns:repeat(4,1fr);}
+.ms-cell{padding:14px 18px;min-width:0;display:flex;flex-direction:column;gap:6px;border-left:1px solid var(--color-border);}
+.ms-cell:first-child{border-left:none;}
+.ms-label{display:flex;align-items:center;gap:6px;font-size:var(--th-text-xs);color:var(--color-fg-muted);min-width:0;}
+.ms-label i{font-size:13px;color:var(--color-fg-subtle);}
+.ms-value{font-size:var(--th-text-xl);font-weight:600;line-height:1.1;color:var(--color-fg);white-space:nowrap;}
+.ms-suffix{font-size:var(--th-text-xs);font-weight:400;color:var(--color-fg-muted);margin-left:3px;}
+.ms-caption{font-size:var(--th-text-2xs);color:var(--color-fg-subtle);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ms-ring{display:flex;align-items:center;gap:10px;}
+
+/* ── 表头帮助提示（Tooltip 取值：gray-800 底 + 白字） ───────── */
+.th-help{display:inline-flex;align-items:center;gap:5px;position:relative;cursor:help;}
+.th-help i{font-size:13px;color:var(--color-fg-subtle);}
+.th-help .tip{position:absolute;left:-8px;top:calc(100% + 8px);width:248px;background:var(--th-gray-800);color:#fff;font-size:var(--th-text-2xs);line-height:1.6;padding:7px 10px;border-radius:var(--th-radius-sm);opacity:0;visibility:hidden;transition:opacity var(--th-dur-1) var(--th-ease);z-index:var(--z-tooltip);font-weight:400;box-shadow:var(--th-shadow-soft);}
+.th-help:hover .tip{opacity:1;visibility:visible;}
+
+/* ── 变更对比（inset 面板） ──────────────────────────────── */
+.diff-wrap{background:var(--color-surface-inset);border-radius:var(--th-radius-sm);padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+.diff-title{font-size:var(--th-text-2xs);color:var(--color-fg-muted);}
+.diff-line{display:flex;align-items:center;gap:10px;font-size:var(--th-text-xs);flex-wrap:wrap;}
+.diff-line .fld{width:48px;color:var(--color-fg-muted);flex-shrink:0;}
+.diff-line .old{color:var(--color-fg-muted);text-decoration:line-through;}
+.diff-line .new{color:var(--color-fg);font-weight:600;}
+
+/* ── 空状态（EmptyState 取值） ───────────────────────────── */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:48px 24px;text-align:center;}
+.empty-graphic{position:relative;width:112px;height:112px;display:flex;align-items:center;justify-content:center;}
+.empty-graphic svg{position:absolute;inset:0;}
+.empty-icon{position:relative;width:48px;height:48px;border-radius:var(--th-radius-md);background:var(--color-surface-raised);border:1px solid var(--color-border);box-shadow:var(--th-shadow-card);color:var(--color-fg-muted);display:inline-flex;align-items:center;justify-content:center;font-size:20px;}
+.empty-title{font-size:var(--th-text-base);font-weight:500;color:var(--color-fg);}
+.empty-desc{font-size:var(--th-text-xs);color:var(--color-fg-muted);max-width:280px;}
+
+/* ── 完成态 ─────────────────────────────────────────────── */
+.done-view{display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 24px 32px;text-align:center;}
+.done-icon{width:48px;height:48px;border-radius:999px;background:var(--color-success-bg);color:var(--color-success-fg);display:inline-flex;align-items:center;justify-content:center;font-size:24px;}
+.done-title{font-size:var(--th-text-md);font-weight:600;color:var(--color-fg);}
+.done-sub{font-size:var(--th-text-base);color:var(--color-fg-muted);line-height:1.7;}
+
+/* ── Modal ──────────────────────────────────────────────── */
+.scrim{position:fixed;inset:0;z-index:var(--z-overlay);background:rgba(15,18,23,.32);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;}
+.scrim.show{display:flex;}
+.modal{background:var(--th-white);border-radius:var(--th-radius-lg);box-shadow:var(--th-shadow-modal);display:flex;flex-direction:column;overflow:hidden;width:560px;max-width:100%;max-height:88vh;}
+.modal.wide{width:760px;}
+.modal-head{padding:20px 24px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;border-bottom:1px solid var(--color-border);}
+.modal-title{font-size:var(--th-text-md);font-weight:600;color:var(--color-fg);}
+.modal-desc{font-size:var(--th-text-xs);color:var(--color-fg-muted);margin-top:4px;}
+.modal-x{appearance:none;border:none;background:transparent;font-size:18px;color:var(--color-fg-muted);cursor:pointer;line-height:1;display:inline-flex;}
+.modal-body{padding:20px 24px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;}
+.modal-body.flush{padding:0;}
+.modal-foot{padding:14px 20px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--color-border);background:var(--th-bg);}
+.form-label{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:var(--th-text-base);font-weight:600;color:var(--color-fg);margin-bottom:8px;}
+.form-label .note{font-size:var(--th-text-xs);font-weight:400;color:var(--color-fg-muted);}
+.channel-row{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:var(--th-text-base);}
+.mail-preview{background:var(--color-surface-inset);border-radius:var(--th-radius-sm);overflow:hidden;}
+.mail-subject{padding:10px 14px;border-bottom:1px solid var(--color-border);font-size:var(--th-text-base);}
+.mail-subject .k{color:var(--color-fg-muted);margin-right:8px;}
+.mail-body{padding:16px;font-size:var(--th-text-base);line-height:1.8;color:var(--color-fg-muted);}
+.mail-body .brand{font-family:var(--th-font-brand);font-weight:700;font-size:var(--th-text-md);color:var(--color-fg);display:block;margin-bottom:12px;letter-spacing:-.01em;}
+.mail-body .var{color:var(--color-fg);font-weight:500;}
+.mail-cta{display:inline-block;background:var(--color-cta);color:var(--color-cta-fg);font-size:var(--th-text-xs);font-weight:500;padding:8px 20px;border-radius:var(--th-radius-sm);margin:10px 0 4px;}
+.mail-foot{border-top:1px solid var(--color-border);margin-top:14px;padding-top:10px;font-size:var(--th-text-2xs);color:var(--color-fg-subtle);}
+.hint-row{display:flex;align-items:flex-start;gap:8px;font-size:var(--th-text-xs);color:var(--color-fg-muted);line-height:1.6;}
+.hint-row i{font-size:14px;color:var(--color-fg-subtle);flex-shrink:0;margin-top:1px;}
+.progress-view{display:none;padding:32px 24px 24px;text-align:center;flex-direction:column;gap:12px;align-items:center;}
+.progress-view.show{display:flex;}
+.bar-track{height:8px;width:100%;max-width:340px;background:var(--color-data-track);border-radius:999px;overflow:hidden;}
+.bar-fill{height:100%;width:0;background:var(--color-accent);border-radius:999px;transition:width var(--th-dur-1) linear;}
+
+/* ── Toast ──────────────────────────────────────────────── */
+.toast-slot{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:var(--z-toast);display:none;}
+.toast-slot.show{display:block;}
+.toast{display:inline-flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--th-radius-md);background:var(--color-info-bg);color:var(--color-info-fg);box-shadow:var(--th-shadow-soft);font-size:var(--th-text-base);font-weight:500;}
+.toast i{font-size:16px;}
+.toast--success{background:var(--color-success-bg);color:var(--color-success-fg);}
+
+/* ── 窄屏：导轨收成 64px 图标轨，指标条改为两列 ──────────── */
+@media (max-width:1080px){.ms{grid-template-columns:repeat(2,1fr);}.ms-cell:nth-child(3){border-left:none;}.ms-cell:nth-child(n+3){border-top:1px solid var(--color-border);}}
+@media (max-width:860px){
+  .rail{width:64px;}
+  .rail-brand{justify-content:center;padding:0;}
+  .rail-wm,.rail-heading,.rail-item span,.rail-chip{display:none;}
+  .rail-item{justify-content:center;padding:0;width:48px;margin:0 auto;}
+  .rail-nav{padding:16px 8px;}
+  .rail-foot{flex-direction:column;}
+  .ms{grid-template-columns:1fr;}
+  .ms-cell{border-left:none;}
+  .ms-cell+.ms-cell{border-top:1px solid var(--color-border);}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ============ D 档 · NavRail ============ -->
+  <aside class="rail" aria-label="主导航">
+    <div class="rail-brand">
+      <img src="spec/infone-design-spec-feat-infone/infone/assets/tokenhub-logo.svg" alt="">
+      <span class="rail-wm">InfOne</span>
+    </div>
+    <nav class="rail-nav">
+      <div class="rail-group">
+        <div class="rail-heading">组织</div>
+        <div class="rail-list">
+          <button class="rail-item" type="button"><i class="ri-team-line"></i><span>成员管理</span></button>
+          <button class="rail-item active" type="button" aria-current="page"><i class="ri-user-add-line"></i><span>成员导入</span></button>
+          <button class="rail-item" type="button"><i class="ri-organization-chart"></i><span>部门与角色</span></button>
+        </div>
+      </div>
+      <div class="rail-group">
+        <div class="rail-heading">资源</div>
+        <div class="rail-list">
+          <button class="rail-item" type="button"><i class="ri-coupon-3-line"></i><span>席位管理</span></button>
+          <button class="rail-item" type="button"><i class="ri-apps-2-line"></i><span>应用接入</span></button>
+          <button class="rail-item" type="button"><i class="ri-folder-3-line"></i><span>项目管理</span></button>
+        </div>
+      </div>
+      <div class="rail-group">
+        <div class="rail-heading">治理</div>
+        <div class="rail-list">
+          <button class="rail-item" type="button"><i class="ri-pie-chart-line"></i><span>用量与配额</span></button>
+          <button class="rail-item" type="button"><i class="ri-file-list-3-line"></i><span>审计日志</span></button>
+          <button class="rail-item" type="button"><i class="ri-settings-3-line"></i><span>设置</span></button>
+        </div>
+      </div>
+    </nav>
+    <div class="rail-foot">
+      <button class="rail-chip" type="button"><span class="rail-avatar"></span><span class="name">zhang.min@acme.cn</span><i class="ri-arrow-up-s-line muted"></i></button>
+      <button class="rail-icon-btn" type="button" aria-label="通知"><i class="ri-notification-3-line"></i></button>
+      <button class="rail-icon-btn" type="button" aria-label="收起导航"><i class="ri-side-bar-fill"></i></button>
+    </div>
+  </aside>
+
+  <main class="canvas">
+    <!-- PageHeader -->
+    <header class="page-header">
+      <nav class="breadcrumb" aria-label="面包屑">
+        <a href="#" onclick="return false;">组织管理</a><i class="ri-arrow-right-s-line"></i><b>成员导入</b>
+      </nav>
+      <div class="ph-row">
+        <h1 class="ph-title">成员导入</h1>
+        <div class="ph-actions">
+          <button class="tk-btn tk-btn--secondary tk-btn--sm th-press" type="button" onclick="openHistory()"><i class="ri-history-line"></i>导入历史</button>
+        </div>
+      </div>
+      <div class="ph-desc">先通过文件把成员导入 InfOne，再到「邀请成员」中发送邀请邮件。</div>
+    </header>
+
+    <!-- Tabs -->
+    <div class="tabs" role="tablist">
+      <button class="tab active" role="tab" id="tabImport" onclick="switchTab('import')">文件导入</button>
+      <button class="tab" role="tab" id="tabInvite" onclick="switchTab('invite')">邀请成员<span class="badge badge--warning th-nums" id="tabBadge" style="display:none"></span></button>
+    </div>
+
+    <!-- ============ TAB 1 · 文件导入 ============ -->
+    <div id="tabPanelImport">
+      <section class="card th-in">
+        <div class="card-pad divider-b">
+          <div class="steps">
+            <div class="step active" id="node1"><span class="step-circle">1</span><span class="step-title">上传文件</span></div>
+            <div class="step-conn" id="conn1"></div>
+            <div class="step" id="node2"><span class="step-circle">2</span><span class="step-title">确认导入结果</span></div>
+          </div>
+        </div>
+
+        <!-- 步骤 1 -->
+        <div class="card-pad stack" id="panel1">
+          <div class="stack" style="gap:8px">
+            <div class="sec-title">1. 下载导入模板</div>
+            <div class="sec-hint">按模板中的字段说明填写成员信息，邮箱作为成员的唯一标识。</div>
+            <div><button class="tk-btn tk-btn--secondary tk-btn--sm th-press" type="button" onclick="toast('模板已开始下载')"><i class="ri-download-2-line"></i>下载模板</button></div>
+          </div>
+          <div class="stack" style="gap:8px">
+            <div class="toolbar">
+              <div class="sec-title">2. 上传完善后的模板</div>
+            </div>
+            <div class="sec-hint">姓名、邮箱为必填项，留空的行将解析失败。支持 .xls / .xlsx / .csv，单个文件不超过 10MB。</div>
+            <div class="dropzone" id="dropzone" onclick="pickFile()">
+              <div id="dzEmpty" class="stack" style="gap:12px;align-items:center">
+                <i class="ri-upload-cloud-2-line dz-icon"></i>
+                <button class="tk-btn tk-btn--secondary tk-btn--sm th-press" type="button" onclick="event.stopPropagation();pickFile();">选择文件</button>
+                <div class="sec-hint">或将文件拖拽到此处上传</div>
+              </div>
+              <div id="dzFile" style="display:none">
+                <span class="file-chip">
+                  <i class="ri-checkbox-circle-fill ok"></i>
+                  <span>成员名单_2000人.xlsx</span>
+                  <span class="muted th-nums">2.4MB</span>
+                  <button class="tk-link" type="button" onclick="event.stopPropagation();clearFile();">移除</button>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 步骤 2 -->
+        <div id="panel2" data-density="compact" style="display:none">
+          <div class="card-pad stack">
+            <div class="stack" style="gap:4px">
+              <div class="sec-title">确认导入结果</div>
+              <div class="sec-hint" id="step2Hint"></div>
+            </div>
+            <div class="stack" style="gap:8px">
+              <div class="meter" id="parseMeter" role="img" aria-label="解析结果构成"></div>
+              <div class="meter-legend th-nums" id="parseLegend"></div>
+            </div>
+            <div class="toolbar">
+              <div class="toolbar-group">
+                <button class="sel sel--sm" type="button" id="parseFilter" aria-expanded="false"
+                  data-options='[{"value":"all","label":"全部状态"},{"value":"new","label":"新增"},{"value":"exist","label":"已存在"},{"value":"fail","label":"解析失败"}]'
+                  data-value="all" onclick="openDropdown(this, onParseFilter)"><span>全部状态</span><i class="ri-arrow-down-s-line"></i></button>
+                <span class="toolbar-group" id="dupCtrl" style="font-size:var(--th-text-xs);color:var(--color-fg-muted)">
+                  已存在成员统一处理
+                  <button class="sel sel--sm" type="button" id="dupPolicySel" aria-expanded="false"
+                    data-options='[{"value":"skip","label":"跳过"},{"value":"update","label":"更新"}]'
+                    data-value="skip" onclick="openDropdown(this, onPolicyPick)"><span>跳过</span><i class="ri-arrow-down-s-line"></i></button>
+                </span>
+              </div>
+              <div class="toolbar-group">
+                <span class="meta-2xs th-nums" id="topNote"></span>
+                <button class="tk-btn tk-btn--secondary tk-btn--sm th-press" id="exportFailBtn" style="display:none"
+                  onclick="toast('正在导出解析失败的数据')"><i class="ri-download-2-line"></i>导出失败</button>
+              </div>
+            </div>
+          </div>
+
+          <table class="tbl">
+            <thead><tr>
+              <th style="width:18%">姓名</th>
+              <th>邮箱</th>
+              <th style="width:210px"><span class="th-help">结果<i class="ri-question-line"></i>
+                <span class="tip">解析成功的数据会按邮箱与最近一次导入版本比对，「新增」将写入平台，「已存在」需选择处理方式。</span></span></th>
+              <th style="width:120px">处理方式</th>
+            </tr></thead>
+            <tbody id="parseBody"></tbody>
+          </table>
+          <div class="table-foot">
+            <span class="th-nums" id="parseTotalText"></span>
+            <div class="toolbar-group">
+              <span>每页</span>
+              <button class="sel sel--sm" type="button" aria-expanded="false"
+                data-options='[{"value":"20","label":"20 条"},{"value":"50","label":"50 条"},{"value":"100","label":"100 条"}]'
+                data-value="20" onclick="openDropdown(this, onParseSize)"><span>20 条</span><i class="ri-arrow-down-s-line"></i></button>
+              <div class="pager" id="parsePager"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 完成 -->
+        <div id="panelDone" style="display:none">
+          <div class="done-view">
+            <span class="done-icon"><i class="ri-check-line"></i></span>
+            <div class="done-title">导入完成</div>
+            <div class="done-sub th-nums" id="doneText"></div>
+          </div>
+        </div>
+
+        <!-- 卡片脚注行 -->
+        <footer class="card-foot" id="foot1">
+          <span class="sec-hint" id="foot1Hint">请先上传完善后的表格</span>
+          <div class="toolbar-group">
+            <button class="tk-btn tk-btn--secondary th-press" type="button" onclick="location.reload()">取消</button>
+            <button class="tk-btn tk-btn--primary th-press" type="button" id="foot1Next" disabled onclick="gotoStep(2)">下一步</button>
+          </div>
+        </footer>
+        <footer class="card-foot" id="foot2" style="display:none">
+          <span class="sec-hint th-nums" id="foot2Hint"></span>
+          <div class="toolbar-group">
+            <button class="tk-btn tk-btn--secondary th-press" type="button" onclick="gotoStep(1)">上一步</button>
+            <button class="tk-btn tk-btn--primary th-press" type="button" onclick="finishImport()">确认导入</button>
+          </div>
+        </footer>
+        <footer class="card-foot" id="footDone" style="display:none">
+          <button class="tk-link" type="button" onclick="openHistory()">查看导入历史</button>
+          <div class="toolbar-group">
+            <button class="tk-btn tk-btn--secondary th-press" type="button" onclick="gotoStep(1);clearFile();">继续导入</button>
+            <button class="tk-btn tk-btn--primary th-press" type="button" onclick="switchTab('invite')">前往邀请</button>
+          </div>
+        </footer>
+      </section>
+    </div>
+
+    <!-- ============ TAB 2 · 邀请成员 ============ -->
+    <div id="tabPanelInvite" style="display:none;flex-direction:column;gap:16px">
+      <section class="card ms th-in" id="inviteMetrics" aria-label="邀请概况"></section>
+
+      <section class="card" data-density="compact">
+        <div class="card-pad stack">
+          <div class="stack" style="gap:4px">
+            <div class="sec-title">邀请成员</div>
+            <div class="sec-hint">已导入 InfOne 的全部成员，勾选后可批量发送邀请邮件。</div>
+          </div>
+          <div class="toolbar">
+            <div class="toolbar-group">
+              <label class="field" style="width:220px"><i class="ri-search-line"></i>
+                <input type="search" id="inviteSearch" placeholder="搜索姓名 / 邮箱" oninput="invitePage=1;clearSelection()" aria-label="搜索姓名或邮箱">
+              </label>
+              <button class="sel" type="button" id="inviteFilter" aria-expanded="false" style="min-width:120px"
+                data-options='[{"value":"all","label":"全部状态"},{"value":"pending","label":"待发送"},{"value":"sent","label":"已发送"}]'
+                data-value="all" onclick="openDropdown(this, onInviteFilter)"><span>全部状态</span><i class="ri-arrow-down-s-line"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <table class="tbl">
+          <thead><tr>
+            <th style="width:46px"><input type="checkbox" class="cb" id="headCb" onchange="toggleAllOnPage(this.checked)" aria-label="全选本页待发送成员"></th>
+            <th style="width:20%">姓名</th>
+            <th>邮箱</th>
+            <th style="width:110px">邀请状态</th>
+            <th style="width:150px">发送时间</th>
+          </tr></thead>
+          <tbody id="inviteBody"></tbody>
+        </table>
+        <div class="table-foot">
+          <span class="th-nums" id="inviteTotalText"></span>
+          <div class="toolbar-group">
+            <span>每页</span>
+            <button class="sel sel--sm" type="button" aria-expanded="false"
+              data-options='[{"value":"20","label":"20 条"},{"value":"50","label":"50 条"},{"value":"100","label":"100 条"}]'
+              data-value="20" onclick="openDropdown(this, onInviteSize)"><span>20 条</span><i class="ri-arrow-down-s-line"></i></button>
+            <div class="pager" id="invitePager"></div>
+          </div>
+        </div>
+        <footer class="card-foot">
+          <span class="sec-hint th-nums" id="selHint">未选择成员</span>
+          <div class="toolbar-group">
+            <button class="tk-link" type="button" id="clearSel" style="display:none" onclick="clearSelection()">清空选择</button>
+            <button class="tk-btn tk-btn--primary th-press" type="button" id="sendBtn" disabled onclick="openSendModal()"><i class="ri-mail-send-line"></i>发送邀请</button>
+          </div>
+        </footer>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- ===== 导入历史 ===== -->
+<div class="scrim" id="historyOverlay">
+  <div class="modal wide th-in-overlay" role="dialog" aria-modal="true" aria-label="导入历史">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">导入历史</div>
+        <div class="modal-desc">每次导入的原始文件保留 180 天，可随时下载核对</div>
+      </div>
+      <button class="modal-x" type="button" onclick="closeHistory()" aria-label="关闭"><i class="ri-close-line"></i></button>
+    </div>
+    <div class="modal-body flush" data-density="compact">
+      <table class="tbl">
+        <thead><tr>
+          <th style="width:88px">版本</th><th style="width:130px">导入时间</th><th>文件</th>
+          <th style="width:110px">操作人</th><th style="width:150px">导入结果</th><th style="width:150px">操作</th>
+        </tr></thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 发送邀请 ===== -->
+<div class="scrim" id="sendOverlay">
+  <div class="modal th-in-overlay" role="dialog" aria-modal="true" aria-label="发送邀请邮件">
+    <div id="sendConfig">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">发送邀请邮件</div>
+          <div class="modal-desc th-nums">将向 <span id="modalCount">0</span> 位待发送成员发送邀请邮件</div>
+        </div>
+        <button class="modal-x" type="button" onclick="closeSendModal()" aria-label="关闭"><i class="ri-close-line"></i></button>
+      </div>
+      <div class="modal-body">
+        <div>
+          <div class="form-label">发送方式</div>
+          <label class="channel-row"><input type="checkbox" class="cb" checked disabled> 邮件邀请</label>
+          <label class="channel-row muted"><input type="checkbox" class="cb" disabled> 短信邀请 <span class="chip chip--neutral">即将上线</span></label>
+        </div>
+        <div>
+          <div class="form-label">邮件内容<span class="note">平台默认模板，不可修改</span></div>
+          <div class="mail-preview">
+            <div class="mail-subject"><span class="k">主题</span><b><span class="var">{{企业名称}}</span> 已为你开通 InfOne 账号</b></div>
+            <div class="mail-body">
+              <span class="brand">InfOne</span>
+              尊敬的 InfOne 用户：<br><br>
+              <span class="var">{{企业名称}}</span> 已为你开通 InfOne 账号，现在可以登录使用。<br><br>
+              InfOne 是企业的统一协作平台。登录后，你可以查看所在团队、与同事协作，并使用企业已开通的应用。<br>
+              点击下方按钮前往 InfOne 登录：
+              <div><span class="mail-cta">前往登录</span></div>
+              账号已创建，无需注册；登录时按页面提示验证身份即可。<br>
+              如果你不认识 <span class="var">{{企业名称}}</span>，请忽略这封邮件。
+              <div class="mail-foot">此邮件由 InfOne 自动发送，请勿直接回复。</div>
+            </div>
+          </div>
+        </div>
+        <div class="hint-row"><i class="ri-information-line"></i><span>邮件分批发送，避免被邮件服务商判定为群发骚扰。发送完成后成员状态更新为「已发送」。</span></div>
+      </div>
+      <div class="modal-foot">
+        <button class="tk-btn tk-btn--secondary th-press" type="button" onclick="closeSendModal()">取消</button>
+        <button class="tk-btn tk-btn--primary th-press" type="button" onclick="startSending()">确认发送</button>
+      </div>
+    </div>
+    <div class="progress-view" id="progressView">
+      <div class="sec-title">正在发送邀请邮件</div>
+      <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
+      <div class="sec-hint th-nums"><span id="pvCur">0</span> / <span id="pvTotal">0</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="dd-menu" id="ddMenu" role="listbox"></div>
+<div class="toast-slot" id="toastSlot"><div class="toast" id="toast"><i class="ri-information-line" id="toastIcon"></i><span id="toastText"></span></div></div>
+
+<script>
+/* ================= 基础 ================= */
+function esc(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function $(id){return document.getElementById(id);}
+let toastTimer;
+function toast(msg,tone){
+  const slot=$('toastSlot'),box=$('toast');
+  box.className='toast'+(tone==='success'?' toast--success':'');
+  $('toastIcon').className=tone==='success'?'ri-checkbox-circle-fill':'ri-information-line';
+  $('toastText').textContent=msg;
+  slot.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>slot.classList.remove('show'),3200);
+}
+function nowStamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}
+
+/* ---- Select（镜像 Select 组件：触发器 + 浮层，选中项 teal-50） ---- */
+let ddTrigger=null,ddHandler=null;
+function openDropdown(trigger,onPick){
+  const menu=$('ddMenu');
+  if(ddTrigger===trigger&&menu.classList.contains('show')){closeDropdown();return;}
+  const options=JSON.parse(trigger.dataset.options),value=trigger.dataset.value;
+  menu.innerHTML=options.map(o=>'<div class="dd-item'+(o.value===value?' on':'')+'" role="option" data-value="'+esc(o.value)+'">'+esc(o.label)+'</div>').join('');
+  const r=trigger.getBoundingClientRect();
+  menu.style.minWidth=Math.max(r.width,120)+'px';
+  menu.style.left=r.left+'px';
+  menu.style.top=(r.bottom+4)+'px';
+  menu.classList.add('show');
+  trigger.setAttribute('aria-expanded','true');
+  ddTrigger=trigger;ddHandler=onPick;
+}
+function closeDropdown(){
+  $('ddMenu').classList.remove('show');
+  if(ddTrigger)ddTrigger.setAttribute('aria-expanded','false');
+  ddTrigger=null;ddHandler=null;
+}
+$('ddMenu').addEventListener('click',e=>{
+  const item=e.target.closest('.dd-item');if(!item||!ddTrigger)return;
+  const trigger=ddTrigger,handler=ddHandler,value=item.dataset.value;
+  trigger.dataset.value=value;
+  trigger.querySelector('span').textContent=item.textContent;
+  closeDropdown();
+  if(handler)handler(value,trigger);
+});
+document.addEventListener('mousedown',e=>{
+  if(!ddTrigger)return;
+  if($('ddMenu').contains(e.target)||ddTrigger.contains(e.target))return;
+  closeDropdown();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  closeDropdown();closeHistory();closeSendModal();
+});
+window.addEventListener('resize',closeDropdown);
+
+/* ---- Pager（镜像 Pager 组件） ---- */
+function pageNumbers(cur,tp){
+  if(tp<=7)return Array.from({length:tp},(_,i)=>i+1);
+  const set=new Set([1,tp,cur,cur-1,cur+1]);
+  if(cur<=4)[2,3,4,5].forEach(n=>set.add(n));
+  if(cur>=tp-3)[tp-4,tp-3,tp-2,tp-1].forEach(n=>set.add(n));
+  const sorted=[...set].filter(n=>n>=1&&n<=tp).sort((a,b)=>a-b);
+  const out=[];
+  sorted.forEach((n,i)=>{if(i>0&&n-sorted[i-1]>1)out.push('…');out.push(n);});
+  return out;
+}
+function renderPager(elId,total,page,size,goFn){
+  const tp=Math.max(1,Math.ceil(total/size));
+  let h='<button class="pg nav" type="button" aria-label="上一页" '+(page===1?'disabled':'')+' onclick="'+goFn+'('+(page-1)+')"><i class="ri-arrow-left-s-line"></i></button>';
+  h+=pageNumbers(page,tp).map(n=>n==='…'
+      ?'<span class="pg gap">…</span>'
+      :'<button class="pg'+(n===page?' on':'')+'" type="button" onclick="'+goFn+'('+n+')">'+n+'</button>').join('');
+  h+='<button class="pg nav" type="button" aria-label="下一页" '+(page===tp?'disabled':'')+' onclick="'+goFn+'('+(page+1)+')"><i class="ri-arrow-right-s-line"></i></button>';
+  $(elId).innerHTML=h;
+}
+
+/* ---- 姓名 / 邮箱 生成 ---- */
+const NAME_POOL=[
+ ['陈立','chen.li'],['王雨桐','wang.yt'],['李昊然','li.hr'],['孙艺馨','sun.yx'],
+ ['吴俊杰','wu.jj'],['郑雅琳','zheng.yl'],['刘沐宸','liu.mc'],['黄棠','huang.t'],
+ ['徐一诺','xu.yn'],['马嘉树','ma.js'],['何清越','he.qy'],['林知微','lin.zw'],
+ ['高远航','gao.yh'],['宋知遥','song.zy'],['杜青禾','du.qh'],['袁凛','yuan.l'],
+ ['范书禾','fan.sh'],['邵一鸣','shao.ym'],['蒋叙白','jiang.xb'],['傅时予','fu.sy'],
+ ['沈亦舟','shen.yz'],['韩星野','han.xy'],['唐临溪','tang.lx'],['冯照晚','feng.zw']
+];
+function gen(i){const [n,p]=NAME_POOL[i%NAME_POOL.length];const c=Math.floor(i/NAME_POOL.length);
+  return {name:n,email:p+(c?c:'')+'@acme.cn'};}
+
+function switchTab(n){
+  const imp=n==='import';
+  $('tabPanelImport').style.display=imp?'block':'none';
+  $('tabPanelInvite').style.display=imp?'none':'flex';
+  $('tabImport').classList.toggle('active',imp);
+  $('tabInvite').classList.toggle('active',!imp);
+  if(!imp){$('tabBadge').style.display='none';renderInviteTable(true);}
+}
+
+/* ================= 导入 ================= */
+let dupPolicy='skip',expandedId=null,parsePage=1,parseSize=20,uid=0;
+let parseRows=[];
+
+/* 解析：姓名/邮箱必填，邮箱需格式合法且文件内不重复 */
+function buildParseRows(){
+  uid=0;parseRows=[];
+  const total=2000,failN=40;
+  const okN=total-failN-2;
+  for(let i=0;i<okN;i++){const g=gen(i);parseRows.push({id:++uid,name:g.name,email:g.email,parse:'ok',cmp:'new'});}
+  parseRows.push({id:++uid,name:'周思颖',email:'zhou.siying@acme.cn',parse:'ok',cmp:'exist',action:'skip',prev:{name:'周思瑛'}});
+  parseRows.push({id:++uid,name:'林知微',email:'lin.zhiwei@acme.cn',parse:'ok',cmp:'exist',action:'skip',prev:{name:'林知薇'}});
+  const cases=[
+    r=>{r.email='';r.reason='邮箱不能为空';},
+    r=>{r.email=r.email.replace('@','.');r.reason='邮箱格式错误';},
+    r=>{r.name='';r.reason='姓名不能为空';},
+    r=>{r.email='chen.li@acme.cn';r.reason='邮箱在文件中重复';}
+  ];
+  for(let i=0;i<failN;i++){
+    const g=gen(2000+i);
+    const r={id:++uid,name:g.name,email:g.email,parse:'fail',cmp:null,reason:''};
+    cases[i%4](r);parseRows.push(r);
+  }
+}
+
+function pickFile(){
+  $('dzEmpty').style.display='none';
+  $('dzFile').style.display='block';
+  $('dropzone').classList.add('has-file');
+  $('foot1Next').disabled=false;
+  $('foot1Hint').textContent='已选择文件，可以进入下一步';
+}
+function clearFile(){
+  $('dzEmpty').style.display='block';
+  $('dzFile').style.display='none';
+  $('dropzone').classList.remove('has-file');
+  $('foot1Next').disabled=true;
+  $('foot1Hint').textContent='请先上传完善后的表格';
+}
+function gotoStep(n){
+  $('panel1').style.display=n===1?'flex':'none';
+  $('panel2').style.display=n===2?'block':'none';
+  $('panelDone').style.display='none';
+  $('foot1').style.display=n===1?'flex':'none';
+  $('foot2').style.display=n===2?'flex':'none';
+  $('footDone').style.display='none';
+  setStepper(n);
+  if(n===2){parsePage=1;expandedId=null;renderParseTable(true);}
+}
+function setStepper(n){
+  for(let i=1;i<=2;i++){
+    const nd=$('node'+i);nd.classList.remove('active','done');
+    const circle=nd.querySelector('.step-circle');
+    if(n>i||n===3){nd.classList.add('done');circle.innerHTML='<i class="ri-check-line"></i>';}
+    else{if(n===i)nd.classList.add('active');circle.textContent=i;}
+  }
+  $('conn1').classList.toggle('done',n>1);
+}
+function onPolicyPick(v){
+  dupPolicy=v;
+  parseRows.forEach(r=>{if(r.cmp==='exist')r.action=v;});
+  renderParseTable();
+}
+function onParseFilter(){parsePage=1;expandedId=null;renderParseTable(true);}
+function onParseSize(v){parseSize=+v;parsePage=1;renderParseTable(true);}
+const okRows     =()=>parseRows.filter(r=>r.parse==='ok');
+const failRows   =()=>parseRows.filter(r=>r.parse==='fail');
+const existRows  =()=>parseRows.filter(r=>r.cmp==='exist');
+const newRows    =()=>parseRows.filter(r=>r.parse==='ok'&&r.cmp==='new');
+const updateCount=()=>existRows().filter(r=>r.action==='update').length;
+const skipCount  =()=>existRows().filter(r=>r.action==='skip').length;
+const lastVer    =()=>hist.length?hist[0]:null;
+
+/* 结果列：解析状态与对比结果合并为一枚状态 chip（扫读主键），原因降为 2xs 元信息 */
+function resultCell(r){
+  if(r.parse==='fail')
+    return '<span class="chip chip--danger"><span class="dot"></span>解析失败</span>'
+      +'<div class="cell-meta">'+esc(r.reason)+'</div>';
+  if(r.cmp==='new')
+    return '<span class="chip chip--success"><span class="dot"></span>新增</span>';
+  const v=lastVer();
+  return '<span class="chip chip--warning"><span class="dot"></span>已存在</span>'
+    +'<button class="tk-link" type="button" style="margin-left:8px" onclick="toggleDiff('+r.id+')">'
+    +(expandedId===r.id?'收起':'查看变更')+'</button>'
+    +'<div class="cell-meta">邮箱在 '+(v?esc(v.ver):'上一版本')+' 中已存在</div>';
+}
+function actionCell(r){
+  if(r.parse==='fail')return '<span class="muted">不导入</span>';
+  if(r.cmp!=='exist')return '<span class="muted">新增</span>';
+  const label=r.action==='update'?'更新':'跳过';
+  return '<button class="sel sel--sm" type="button" aria-expanded="false" style="width:100%"'
+    +' data-options=\'[{"value":"skip","label":"跳过"},{"value":"update","label":"更新"}]\''
+    +' data-value="'+r.action+'" onclick="openDropdown(this,(v)=>setRowAction('+r.id+',v))">'
+    +'<span>'+label+'</span><i class="ri-arrow-down-s-line"></i></button>';
+}
+function diffRow(r){
+  const v=lastVer();
+  const same=r.prev.name===r.name;
+  const nameLine=same
+    ?'<div class="diff-line"><span class="fld">姓名</span><span class="new">'+esc(r.name)+'</span><span class="meta-2xs">未变化</span></div>'
+    :'<div class="diff-line"><span class="fld">姓名</span><span class="old">'+esc(r.prev.name)+'</span><i class="ri-arrow-right-s-line subtle"></i><span class="new">'+esc(r.name)+'</span></div>';
+  const note='与最近一次导入（'+(v?esc(v.ver)+' · '+esc(v.time.slice(0,10)):'上一版本')+'）对比';
+  return '<tr class="diff-row"><td colspan="4" style="padding-top:0"><div class="diff-wrap"><div class="diff-title">'+note+'</div>'+nameLine
+    +'<div class="diff-line"><span class="fld">邮箱</span><span class="new">'+esc(r.email)
+    +'</span><span class="meta-2xs">唯一标识，不可变更</span></div></div></td></tr>';
+}
+
+function renderMeter(nNew,u,sk,nFail){
+  const total=Math.max(1,nNew+u+sk+nFail);
+  const seg=[
+    {label:'新增',n:nNew,color:'var(--color-stack-1)'},
+    {label:'更新',n:u,color:'var(--color-stack-2)'},
+    {label:'跳过',n:sk,color:'var(--color-stack-3)'},
+    {label:'不导入',n:nFail,color:'var(--color-stack-0)'}
+  ];
+  $('parseMeter').innerHTML=seg.filter(s=>s.n>0)
+    .map(s=>'<span style="width:'+(s.n/total*100)+'%;background:'+s.color+'"></span>').join('');
+  $('parseLegend').innerHTML=seg.map(s=>'<span class="item"><i class="sw" style="background:'+s.color+'"></i>'
+    +s.label+' '+s.n+'</span>').join('');
+}
+
+function renderParseTable(structural){
+  const f=$('parseFilter').dataset.value;
+  const rank=r=>r.cmp==='exist'?0:(r.parse==='fail'?1:2);
+  const match=r=>f==='all'||(f==='new'&&r.parse==='ok'&&r.cmp!=='exist')
+    ||(f==='exist'&&r.cmp==='exist')||(f==='fail'&&r.parse==='fail');
+  const all=parseRows.filter(match).sort((a,b)=>rank(a)-rank(b));
+  const tp=Math.max(1,Math.ceil(all.length/parseSize));
+  if(parsePage>tp)parsePage=tp;
+  const list=all.slice((parsePage-1)*parseSize,parsePage*parseSize);
+
+  const body=$('parseBody');
+  body.className=structural?'th-stagger':'';
+  body.innerHTML=list.length?list.map(r=>{
+    let row='<tr>'
+      +'<td>'+(r.name?esc(r.name):'<span class="muted">未填写</span>')+'</td>'
+      +'<td class="muted">'+(r.email?esc(r.email):'—')+'</td>'
+      +'<td>'+resultCell(r)+'</td>'
+      +'<td>'+actionCell(r)+'</td></tr>';
+    if(r.cmp==='exist'&&expandedId===r.id)row+=diffRow(r);
+    return row;
+  }).join('')
+   :'<tr><td colspan="4">'+emptyState('ri-search-line','没有符合条件的数据','换一个筛选条件试试')+'</td></tr>';
+
+  const nFail=failRows().length,nEx=existRows().length,nNew=newRows().length;
+  const u=updateCount(),sk=skipCount();
+  $('step2Hint').textContent='按邮箱与最近一次导入版本比对，需要处理的数据已置顶，仅「新增」和「更新」写入平台。';
+  renderMeter(nNew,u,sk,nFail);
+  $('dupCtrl').style.display=nEx?'inline-flex':'none';
+  const notes=[];
+  if(nEx)notes.push('已存在 '+nEx+' 条');
+  if(nFail)notes.push('解析失败 '+nFail+' 条');
+  $('topNote').textContent=notes.length?notes.join(' · ')+'已置顶':'';
+  $('exportFailBtn').style.display=nFail?'inline-flex':'none';
+
+  $('foot2Hint').textContent='本次将新增 '+nNew+' 人'
+    +(u?' · 更新 '+u+' 人':'')
+    +(sk?' · 跳过 '+sk+' 人':'')
+    +(nFail?' · 不导入 '+nFail+' 人（解析失败）':'');
+  $('parseTotalText').textContent='共 '+all.length+' 条';
+  renderPager('parsePager',all.length,parsePage,parseSize,'goParsePage');
+}
+function emptyState(icon,title,desc){
+  return '<div class="empty"><span class="empty-graphic">'
+    +'<svg viewBox="0 0 112 112" aria-hidden="true">'
+    +'<circle cx="56" cy="56" r="22" fill="none" stroke="var(--color-border)" stroke-width="1"></circle>'
+    +'<circle cx="56" cy="56" r="38" fill="none" stroke="var(--color-border)" stroke-width="1" stroke-dasharray="3 5" opacity="0.78"></circle>'
+    +'<circle cx="56" cy="56" r="54" fill="none" stroke="var(--color-border)" stroke-width="1" opacity="0.56"></circle>'
+    +'</svg><span class="empty-icon"><i class="'+icon+'"></i></span></span>'
+    +'<div class="empty-title">'+esc(title)+'</div>'
+    +(desc?'<div class="empty-desc">'+esc(desc)+'</div>':'')+'</div>';
+}
+function goParsePage(p){parsePage=p;expandedId=null;renderParseTable(true);}
+function setRowAction(id,v){parseRows.find(r=>r.id===id).action=v;renderParseTable();}
+function toggleDiff(id){expandedId=(expandedId===id?null:id);renderParseTable();}
+
+function finishImport(){
+  const nNew=newRows().length,u=updateCount(),sk=skipCount(),nFail=failRows().length;
+  newRows().forEach(r=>{members.push({id:++mid,name:r.name,email:r.email,status:'pending',sentAt:null});});
+  existRows().filter(r=>r.action==='update').forEach(r=>{
+    const t=members.find(m=>m.email===r.email);if(t)t.name=r.name;
+  });
+  $('panel1').style.display='none';
+  $('panel2').style.display='none';
+  $('panelDone').style.display='block';
+  $('foot1').style.display='none';
+  $('foot2').style.display='none';
+  $('footDone').style.display='flex';
+  setStepper(3);
+  $('doneText').textContent='新增 '+nNew+' 位成员'+(u?' · 更新 '+u+' 位已有成员':'')
+    +(sk?' · 跳过 '+sk+' 位已有成员':'')+(nFail?' · 未导入 '+nFail+' 条（解析失败）':'');
+  const badge=$('tabBadge');
+  badge.style.display='inline-block';badge.textContent=nNew>99?'99+':nNew;
+  hist.unshift({ver:'V'+(hist.length+1),time:nowStamp(),file:'成员名单_2000人.xlsx',size:'2.4MB',
+    by:'张敏',add:nNew,upd:u,skip:sk,fail:nFail});
+  invitePage=1;selected.clear();selectAllMode=false;renderInviteTable(true);
+}
+
+/* ================= 导入历史 ================= */
+const baseHist=[
+  {ver:'V3',time:'2026-07-03 09:10',file:'成员名单_补充38人.xlsx',size:'46KB',by:'张敏',add:36,upd:2,skip:0,fail:0},
+  {ver:'V2',time:'2026-06-18 16:45',file:'成员名单_研发中心.xlsx',size:'112KB',by:'李伟',add:118,upd:0,skip:4,fail:5},
+  {ver:'V1',time:'2026-06-05 11:02',file:'成员名单_初始版.xlsx',size:'298KB',by:'李伟',add:412,upd:0,skip:0,fail:9}
+];
+let hist=baseHist.slice();
+function openHistory(){renderHistory();$('historyOverlay').classList.add('show');}
+function closeHistory(){$('historyOverlay').classList.remove('show');}
+function renderHistory(){
+  if(!hist.length){
+    $('historyBody').innerHTML='<tr><td colspan="6">'
+      +emptyState('ri-history-line','还没有导入记录','完成首次导入后会生成 V1 版本')+'</td></tr>';
+    return;
+  }
+  $('historyBody').innerHTML=hist.map((h,i)=>
+    '<tr>'
+    +'<td><span class="th-nums" style="font-weight:600">'+esc(h.ver)+'</span>'
+      +(i===0?' <span class="chip chip--success"><span class="dot"></span>最新</span>':'')+'</td>'
+    +'<td class="muted th-nums">'+esc(h.time)+'</td>'
+    +'<td><span style="display:inline-flex;align-items:center;gap:6px"><i class="ri-file-excel-2-line subtle"></i>'+esc(h.file)+'</span>'
+      +'<div class="cell-meta th-nums">'+esc(h.size)+'</div></td>'
+    +'<td class="muted">'+esc(h.by)+'</td>'
+    +'<td class="th-nums"><span class="muted">新增</span> '+h.add+' · <span class="muted">更新</span> '+h.upd
+      +'<div class="cell-meta">跳过 '+h.skip+' · 失败 '+h.fail+'</div></td>'
+    +'<td><button class="tk-link" type="button" onclick="toast(\'正在下载 '+esc(h.file)+'\')">下载文件</button>'
+      +' <button class="tk-link" type="button" style="margin-left:12px" onclick="toast(\'打开该版本的导入明细\')">查看明细</button></td>'
+    +'</tr>').join('');
+}
+
+/* ================= 邀请 ================= */
+let members=[],mid=0,invitePage=1,inviteSize=20;
+let selected=new Set(),selectAllMode=false;
+
+function buildMembers(){
+  /* 平台已有成员（来自 V1–V3 三次导入，共 566 人） */
+  for(let i=0;i<564;i++){
+    const g=gen(5000+i);
+    const sent=i>=24;
+    members.push({id:++mid,name:g.name,email:g.email,status:sent?'sent':'pending',
+      sentAt:sent?'2026-07-03 09:'+String(12+(i%40)).padStart(2,'0'):null});
+  }
+  members.push({id:++mid,name:'周思瑛',email:'zhou.siying@acme.cn',status:'sent',sentAt:'2026-06-18 16:52'});
+  members.push({id:++mid,name:'林知薇',email:'lin.zhiwei@acme.cn',status:'sent',sentAt:'2026-06-18 16:52'});
+}
+function onInviteFilter(){invitePage=1;clearSelection();}
+function onInviteSize(v){inviteSize=+v;invitePage=1;renderInviteTable(true);}
+function inviteFiltered(){
+  const f=$('inviteFilter').dataset.value;
+  const q=$('inviteSearch').value.trim().toLowerCase();
+  return members.filter(m=>(f==='all'||m.status===f)
+    &&(!q||m.name.toLowerCase().includes(q)||m.email.toLowerCase().includes(q)));
+}
+function matchingPending(){return inviteFiltered().filter(m=>m.status==='pending');}
+
+/* RingGauge：单一比率（邀请覆盖率），tone=heat 随数值走强度色阶 */
+function ringGauge(pct,size,thickness){
+  const r=(size-thickness)/2,c=2*Math.PI*r,step=Math.min(4,Math.max(0,Math.round(pct/25)));
+  return '<span style="position:relative;display:inline-flex;width:'+size+'px;height:'+size+'px;flex:none">'
+    +'<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'" style="transform:rotate(-90deg)" aria-hidden="true">'
+    +'<circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="var(--color-data-track)" stroke-width="'+thickness+'"></circle>'
+    +'<circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="var(--th-heat-'+step+')" stroke-width="'+thickness+'" stroke-linecap="round"'
+    +' stroke-dasharray="'+c+'" stroke-dashoffset="'+(c-pct/100*c)+'"></circle></svg>'
+    +'<span class="th-nums" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--th-font-ui);font-size:var(--th-text-xs);font-weight:600">'
+    +Math.round(pct)+'%</span></span>';
+}
+function renderInviteMetrics(){
+  const total=members.length;
+  const pending=members.filter(m=>m.status==='pending').length;
+  const sent=total-pending;
+  const pct=total?sent/total*100:0;
+  const lastSent=members.filter(m=>m.sentAt).map(m=>m.sentAt).sort().slice(-1)[0];
+  $('inviteMetrics').innerHTML=
+     '<div class="ms-cell"><div class="ms-label"><i class="ri-team-line"></i><span>成员总数</span></div>'
+    +'<div class="ms-value th-nums">'+total+'<span class="ms-suffix">人</span></div>'
+    +'<div class="ms-caption">已导入 InfOne 的成员</div></div>'
+    +'<div class="ms-cell"><div class="ms-label"><i class="ri-mail-send-line"></i><span>待发送</span></div>'
+    +'<div class="ms-value th-nums">'+pending+'<span class="ms-suffix">人</span></div>'
+    +'<div class="ms-caption">尚未收到邀请邮件</div></div>'
+    +'<div class="ms-cell"><div class="ms-label"><i class="ri-user-received-line"></i><span>已发送</span></div>'
+    +'<div class="ms-value th-nums">'+sent+'<span class="ms-suffix">人</span></div>'
+    +'<div class="ms-caption th-nums">最近一次 '+(lastSent?esc(lastSent):'—')+'</div></div>'
+    +'<div class="ms-cell"><div class="ms-label"><i class="ri-pie-chart-line"></i><span>邀请覆盖率</span></div>'
+    +'<div class="ms-ring">'+ringGauge(pct,48,6)
+    +'<span class="ms-caption">已发送 / 成员总数</span></div></div>';
+}
+function renderInviteTable(structural){
+  const all=inviteFiltered();
+  const tp=Math.max(1,Math.ceil(all.length/inviteSize));
+  if(invitePage>tp)invitePage=tp;
+  const list=all.slice((invitePage-1)*inviteSize,invitePage*inviteSize);
+
+  const body=$('inviteBody');
+  body.className=structural?'th-stagger':'';
+  body.innerHTML=list.length?list.map(m=>{
+    const sent=m.status==='sent',checked=selected.has(m.id)||(selectAllMode&&!sent);
+    return '<tr class="'+(checked?'selected':'')+'">'
+      +'<td><input type="checkbox" class="cb" '+(sent?'disabled title="已发送邀请"':'')+' '+(checked?'checked':'')
+        +' onchange="toggleRow('+m.id+',this.checked)" aria-label="选择 '+esc(m.name)+'"></td>'
+      +'<td>'+esc(m.name)+'</td><td class="muted">'+esc(m.email)+'</td>'
+      +'<td>'+(sent?'<span class="chip chip--success"><span class="dot"></span>已发送</span>'
+                   :'<span class="chip chip--warning"><span class="dot"></span>待发送</span>')+'</td>'
+      +'<td class="muted th-nums">'+(m.sentAt||'—')+'</td></tr>';
+  }).join('')
+   :'<tr><td colspan="5">'+emptyState('ri-team-line','没有符合条件的成员','调整搜索或筛选条件后再试')+'</td></tr>';
+
+  renderInviteMetrics();
+  $('inviteTotalText').textContent='共 '+all.length+' 条';
+  renderPager('invitePager',all.length,invitePage,inviteSize,'goInvitePage');
+
+  const pageSel=list.filter(m=>m.status==='pending');
+  const hcb=$('headCb');
+  hcb.disabled=pageSel.length===0;
+  hcb.checked=pageSel.length>0&&pageSel.every(m=>selected.has(m.id)||selectAllMode);
+  updateSelectionUI(pageSel);
+}
+function goInvitePage(p){invitePage=p;renderInviteTable(true);}
+function toggleRow(id,c){
+  if(selectAllMode){selectAllMode=false;matchingPending().forEach(m=>selected.add(m.id));}
+  if(c)selected.add(id);else selected.delete(id);
+  renderInviteTable();
+}
+function toggleAllOnPage(c){
+  const all=inviteFiltered();
+  const list=all.slice((invitePage-1)*inviteSize,invitePage*inviteSize).filter(m=>m.status==='pending');
+  if(selectAllMode){selectAllMode=false;matchingPending().forEach(m=>selected.add(m.id));}
+  list.forEach(m=>c?selected.add(m.id):selected.delete(m.id));
+  renderInviteTable();
+}
+function selectAllMatching(){selectAllMode=true;renderInviteTable();}
+function clearSelection(){selected.clear();selectAllMode=false;renderInviteTable(true);}
+function selectedCount(){return selectAllMode?matchingPending().length:selected.size;}
+function updateSelectionUI(pageSel){
+  const n=selectedCount();
+  $('sendBtn').disabled=n===0;
+  $('clearSel').style.display=n>0?'inline-flex':'none';
+  const allPage=pageSel.length>0&&pageSel.every(m=>selected.has(m.id));
+  const totalPending=matchingPending().length;
+  let hint=n?'已选择 '+n+' 位成员':'未选择成员';
+  if(allPage&&!selectAllMode&&totalPending>pageSel.length){
+    hint+=' · 本页已全选，';
+    $('selHint').innerHTML=esc(hint)+'<button class="tk-link" type="button" onclick="selectAllMatching()">选择全部待发送的 '+totalPending+' 位</button>';
+    return;
+  }
+  $('selHint').textContent=hint;
+}
+function openSendModal(){
+  $('modalCount').textContent=selectedCount();
+  $('sendConfig').style.display='block';
+  $('progressView').classList.remove('show');
+  $('barFill').style.width='0%';
+  $('sendOverlay').classList.add('show');
+}
+function closeSendModal(){$('sendOverlay').classList.remove('show');}
+function startSending(){
+  const targets=selectAllMode?matchingPending():members.filter(m=>selected.has(m.id));
+  const target=targets.length;
+  $('sendConfig').style.display='none';
+  $('progressView').classList.add('show');
+  $('pvTotal').textContent=target;
+  const fill=$('barFill'),cur=$('pvCur');
+  let c=0;
+  const tick=()=>{
+    c+=Math.max(1,Math.ceil(target/22));
+    if(c>=target){
+      c=target;fill.style.width='100%';cur.textContent=c;
+      setTimeout(()=>{
+        const stamp=nowStamp();
+        targets.forEach(m=>{m.status='sent';m.sentAt=stamp;});
+        selected.clear();selectAllMode=false;
+        renderInviteTable(true);closeSendModal();
+        toast('已向 '+target+' 位成员发送邀请邮件','success');
+      },280);
+      return;
+    }
+    fill.style.width=(c/target*100)+'%';cur.textContent=c;setTimeout(tick,60);
+  };tick();
+}
+
+/* 点击遮罩关闭 */
+$('historyOverlay').addEventListener('click',e=>{if(e.target.id==='historyOverlay')closeHistory();});
+$('sendOverlay').addEventListener('click',e=>{if(e.target.id==='sendOverlay')closeSendModal();});
+
+buildMembers();
+buildParseRows();
+renderInviteTable(true);
+</script>
+</body>
+</html>
