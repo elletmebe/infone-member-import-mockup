@@ -877,7 +877,7 @@ function finishImport(){
 
 /* ================= 导入历史 ================= */
 const baseHist=[
-  {ver:'V4',time:'2026-08-21 10:24',file:'成员名单_新财年补录.xlsx',size:'82KB',by:'张敏',add:248,upd:6,skip:0,fail:2},
+  {ver:'V4',time:'2026-08-21 10:24',file:'成员名单_新财年补录.xlsx',size:'146KB',by:'张敏',add:436,upd:6,skip:0,fail:2},
   {ver:'V3',time:'2026-07-03 09:10',file:'成员名单_补充116人.xlsx',size:'46KB',by:'张敏',add:116,upd:2,skip:0,fail:0},
   {ver:'V2',time:'2026-06-18 16:45',file:'成员名单_研发中心.xlsx',size:'112KB',by:'李伟',add:318,upd:0,skip:4,fail:5},
   {ver:'V1',time:'2026-06-05 11:02',file:'成员名单_初始版.xlsx',size:'298KB',by:'李伟',add:604,upd:0,skip:0,fail:9}
@@ -911,8 +911,8 @@ let members=[],mid=0,invitePage=1,inviteSize=20;
 let selected=new Set(),selectAllMode=false;
 
 function buildMembers(){
-  /* 平台已有成员：V1–V4 四次导入共 1,286 人；最新一批 V4（248 人）尚未发送邀请 */
-  const PENDING=248;
+  /* 平台已有成员：V1–V4 四次导入共 1,474 人；最新一批 V4（436 人）尚未发送邀请 */
+  const PENDING=436;
   const SENT_BATCH=[
     {n:116,at:'2026-07-03 09:'},   /* V3 补录 */
     {n:318,at:'2026-06-18 16:'},   /* V2 研发中心 */
