@@ -654,7 +654,16 @@ const NAME_POOL=[
  ['徐一诺','xu.yn'],['马嘉树','ma.js'],['何清越','he.qy'],['林知微','lin.zw'],
  ['高远航','gao.yh'],['宋知遥','song.zy'],['杜青禾','du.qh'],['袁凛','yuan.l'],
  ['范书禾','fan.sh'],['邵一鸣','shao.ym'],['蒋叙白','jiang.xb'],['傅时予','fu.sy'],
- ['沈亦舟','shen.yz'],['韩星野','han.xy'],['唐临溪','tang.lx'],['冯照晚','feng.zw']
+ ['沈亦舟','shen.yz'],['韩星野','han.xy'],['唐临溪','tang.lx'],['冯照晚','feng.zw'],
+ ['曹听澜','cao.tl'],['谢云舒','xie.ys'],['罗砚青','luo.yq'],['梁书言','liang.sy'],
+ ['崔怀瑾','cui.hj'],['潘承欢','pan.ch'],['秦叙','qin.x'],['卢星阑','lu.xl'],
+ ['阎知许','yan.zx'],['邹清让','zou.qr'],['石慕言','shi.my'],['白鹤川','bai.hc'],
+ ['龚予安','gong.ya'],['万清和','wan.qh'],['苏景行','su.jx'],['岑野','cen.y'],
+ ['温朔','wen.s'],['严景初','yan.jc'],['尹知遇','yin.zy'],['施晚晴','shi.wq'],
+ ['洪宜年','hong.yn'],['段昭南','duan.zn'],['常砚舟','chang.yz'],['侯书白','hou.sb'],
+ ['阮时叙','ruan.ss'],['米知然','mi.zr'],['江砚辞','jiang.yc'],['柯听雨','ke.ty'],
+ ['应白露','ying.bl'],['樊照野','fan.zy'],['邢知野','xing.zy'],['康明远','kang.my'],
+ ['齐霁','qi.j'],['路知寒','lu.zh'],['燕南飞','yan.nf'],['童向晚','tong.xw']
 ];
 function gen(i){const [n,p]=NAME_POOL[i%NAME_POOL.length];const c=Math.floor(i/NAME_POOL.length);
   return {name:n,email:p+(c?c:'')+'@acme.cn'};}
@@ -868,9 +877,10 @@ function finishImport(){
 
 /* ================= 导入历史 ================= */
 const baseHist=[
-  {ver:'V3',time:'2026-07-03 09:10',file:'成员名单_补充38人.xlsx',size:'46KB',by:'张敏',add:36,upd:2,skip:0,fail:0},
-  {ver:'V2',time:'2026-06-18 16:45',file:'成员名单_研发中心.xlsx',size:'112KB',by:'李伟',add:118,upd:0,skip:4,fail:5},
-  {ver:'V1',time:'2026-06-05 11:02',file:'成员名单_初始版.xlsx',size:'298KB',by:'李伟',add:412,upd:0,skip:0,fail:9}
+  {ver:'V4',time:'2026-08-21 10:24',file:'成员名单_新财年补录.xlsx',size:'82KB',by:'张敏',add:248,upd:6,skip:0,fail:2},
+  {ver:'V3',time:'2026-07-03 09:10',file:'成员名单_补充116人.xlsx',size:'46KB',by:'张敏',add:116,upd:2,skip:0,fail:0},
+  {ver:'V2',time:'2026-06-18 16:45',file:'成员名单_研发中心.xlsx',size:'112KB',by:'李伟',add:318,upd:0,skip:4,fail:5},
+  {ver:'V1',time:'2026-06-05 11:02',file:'成员名单_初始版.xlsx',size:'298KB',by:'李伟',add:604,upd:0,skip:0,fail:9}
 ];
 let hist=baseHist.slice();
 function openHistory(){renderHistory();$('historyOverlay').classList.add('show');}
@@ -901,15 +911,27 @@ let members=[],mid=0,invitePage=1,inviteSize=20;
 let selected=new Set(),selectAllMode=false;
 
 function buildMembers(){
-  /* 平台已有成员（来自 V1–V3 三次导入，共 566 人） */
-  for(let i=0;i<564;i++){
+  /* 平台已有成员：V1–V4 四次导入共 1,286 人；最新一批 V4（248 人）尚未发送邀请 */
+  const PENDING=248;
+  const SENT_BATCH=[
+    {n:116,at:'2026-07-03 09:'},   /* V3 补录 */
+    {n:318,at:'2026-06-18 16:'},   /* V2 研发中心 */
+    {n:602,at:'2026-06-05 11:'}    /* V1 初始版（另含下方 2 位早期成员） */
+  ];
+  for(let i=0;i<PENDING;i++){
     const g=gen(5000+i);
-    const sent=i>=128;   /* 前 128 位为「待发送」，其余为已发送 */
-    members.push({id:++mid,name:g.name,email:g.email,status:sent?'sent':'pending',
-      sentAt:sent?'2026-07-03 09:'+String(12+(i%40)).padStart(2,'0'):null});
+    members.push({id:++mid,name:g.name,email:g.email,status:'pending',sentAt:null});
   }
-  members.push({id:++mid,name:'周思瑛',email:'zhou.siying@acme.cn',status:'sent',sentAt:'2026-06-18 16:52'});
-  members.push({id:++mid,name:'林知薇',email:'lin.zhiwei@acme.cn',status:'sent',sentAt:'2026-06-18 16:52'});
+  let k=0;
+  SENT_BATCH.forEach(b=>{
+    for(let j=0;j<b.n;j++,k++){
+      const g=gen(5000+PENDING+k);
+      members.push({id:++mid,name:g.name,email:g.email,status:'sent',
+        sentAt:b.at+String(2+((k*7)%57)).padStart(2,'0')});
+    }
+  });
+  members.push({id:++mid,name:'周思瑛',email:'zhou.siying@acme.cn',status:'sent',sentAt:'2026-06-05 11:52'});
+  members.push({id:++mid,name:'林知薇',email:'lin.zhiwei@acme.cn',status:'sent',sentAt:'2026-06-05 11:52'});
 }
 function onInviteFilter(){invitePage=1;clearSelection();}
 function onInviteSize(v){inviteSize=+v;invitePage=1;renderInviteTable(true);}
