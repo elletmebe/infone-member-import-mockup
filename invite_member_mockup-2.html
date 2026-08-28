@@ -485,7 +485,7 @@
         <footer class="card-foot">
           <div class="toolbar-group">
             <span class="sec-hint th-nums" id="selHint">未选择成员</span>
-            <button class="tk-btn tk-btn--secondary tk-btn--sm th-press" type="button" id="selectAllSendBtn" onclick="selectAllAndSend()"><i class="ri-check-double-line"></i>一键全选并发送</button>
+            <button class="tk-btn tk-btn--secondary th-press" type="button" id="selectAllSendBtn" onclick="selectAllAndSend()"><i class="ri-check-double-line"></i>邀请全部</button>
           </div>
           <div class="toolbar-group">
             <button class="tk-link" type="button" id="clearSel" style="display:none" onclick="clearSelection()">清空选择</button>
@@ -1025,7 +1025,9 @@ function updateSelectionUI(pageSel){
   $('sendBtn').disabled=n===0;
   $('clearSel').style.display=n>0?'inline-flex':'none';
   const totalPending=matchingPending().length;
-  $('selectAllSendBtn').disabled=totalPending===0;
+  const allBtn=$('selectAllSendBtn');
+  allBtn.disabled=totalPending===0;
+  allBtn.title=totalPending?'选中当前筛选下全部 '+totalPending+' 位待发送成员，并发送邀请邮件':'当前没有待发送成员';
   $('selHint').textContent=n?'已选择 '+n+' 位成员':'未选择成员';
 }
 function openSendModal(){
