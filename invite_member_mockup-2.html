@@ -483,10 +483,12 @@
           </div>
         </div>
         <footer class="card-foot">
-          <span class="sec-hint th-nums" id="selHint">未选择成员</span>
+          <div class="toolbar-group">
+            <span class="sec-hint th-nums" id="selHint">未选择成员</span>
+            <button class="tk-btn tk-btn--secondary tk-btn--sm th-press" type="button" id="selectAllSendBtn" onclick="selectAllAndSend()"><i class="ri-check-double-line"></i>一键全选并发送</button>
+          </div>
           <div class="toolbar-group">
             <button class="tk-link" type="button" id="clearSel" style="display:none" onclick="clearSelection()">清空选择</button>
-            <button class="tk-btn tk-btn--secondary th-press" type="button" id="selectAllSendBtn" onclick="selectAllAndSend()"><i class="ri-check-double-line"></i>一键全选并发送</button>
             <button class="tk-btn tk-btn--primary th-press" type="button" id="sendBtn" disabled onclick="openSendModal()"><i class="ri-mail-send-line"></i>发送邀请</button>
           </div>
         </footer>
