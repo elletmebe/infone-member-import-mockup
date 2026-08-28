@@ -486,6 +486,7 @@
           <span class="sec-hint th-nums" id="selHint">未选择成员</span>
           <div class="toolbar-group">
             <button class="tk-link" type="button" id="clearSel" style="display:none" onclick="clearSelection()">清空选择</button>
+            <button class="tk-btn tk-btn--secondary th-press" type="button" id="selectAllSendBtn" onclick="selectAllAndSend()"><i class="ri-check-double-line"></i>一键全选并发送</button>
             <button class="tk-btn tk-btn--primary th-press" type="button" id="sendBtn" disabled onclick="openSendModal()"><i class="ri-mail-send-line"></i>发送邀请</button>
           </div>
         </footer>
@@ -901,7 +902,7 @@ function buildMembers(){
   /* 平台已有成员（来自 V1–V3 三次导入，共 566 人） */
   for(let i=0;i<564;i++){
     const g=gen(5000+i);
-    const sent=i>=24;
+    const sent=i>=128;   /* 前 128 位为「待发送」，其余为已发送 */
     members.push({id:++mid,name:g.name,email:g.email,status:sent?'sent':'pending',
       sentAt:sent?'2026-07-03 09:'+String(12+(i%40)).padStart(2,'0'):null});
   }
@@ -992,22 +993,16 @@ function toggleAllOnPage(c){
   list.forEach(m=>c?selected.add(m.id):selected.delete(m.id));
   renderInviteTable();
 }
-function selectAllMatching(){selectAllMode=true;renderInviteTable();}
+function selectAllAndSend(){selectAllMode=true;renderInviteTable();openSendModal();}
 function clearSelection(){selected.clear();selectAllMode=false;renderInviteTable(true);}
 function selectedCount(){return selectAllMode?matchingPending().length:selected.size;}
 function updateSelectionUI(pageSel){
   const n=selectedCount();
   $('sendBtn').disabled=n===0;
   $('clearSel').style.display=n>0?'inline-flex':'none';
-  const allPage=pageSel.length>0&&pageSel.every(m=>selected.has(m.id));
   const totalPending=matchingPending().length;
-  let hint=n?'已选择 '+n+' 位成员':'未选择成员';
-  if(allPage&&!selectAllMode&&totalPending>pageSel.length){
-    hint+=' · 本页已全选，';
-    $('selHint').innerHTML=esc(hint)+'<button class="tk-link" type="button" onclick="selectAllMatching()">选择全部待发送的 '+totalPending+' 位</button>';
-    return;
-  }
-  $('selHint').textContent=hint;
+  $('selectAllSendBtn').disabled=totalPending===0;
+  $('selHint').textContent=n?'已选择 '+n+' 位成员':'未选择成员';
 }
 function openSendModal(){
   $('modalCount').textContent=selectedCount();
