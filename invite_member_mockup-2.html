@@ -877,10 +877,11 @@ function finishImport(){
 
 /* ================= 导入历史 ================= */
 const baseHist=[
+  {ver:'V5',time:'2026-08-26 15:08',file:'成员名单_并购团队接入.xlsx',size:'254KB',by:'张敏',add:772,upd:14,skip:3,fail:11},
   {ver:'V4',time:'2026-08-21 10:24',file:'成员名单_新财年补录.xlsx',size:'146KB',by:'张敏',add:436,upd:6,skip:0,fail:2},
-  {ver:'V3',time:'2026-07-03 09:10',file:'成员名单_补充116人.xlsx',size:'46KB',by:'张敏',add:116,upd:2,skip:0,fail:0},
-  {ver:'V2',time:'2026-06-18 16:45',file:'成员名单_研发中心.xlsx',size:'112KB',by:'李伟',add:318,upd:0,skip:4,fail:5},
-  {ver:'V1',time:'2026-06-05 11:02',file:'成员名单_初始版.xlsx',size:'298KB',by:'李伟',add:604,upd:0,skip:0,fail:9}
+  {ver:'V3',time:'2026-07-03 09:10',file:'成员名单_补充316人.xlsx',size:'104KB',by:'张敏',add:316,upd:2,skip:0,fail:0},
+  {ver:'V2',time:'2026-06-18 16:45',file:'成员名单_研发中心.xlsx',size:'196KB',by:'李伟',add:618,upd:0,skip:4,fail:5},
+  {ver:'V1',time:'2026-06-05 11:02',file:'成员名单_初始版.xlsx',size:'382KB',by:'李伟',add:1204,upd:0,skip:0,fail:9}
 ];
 let hist=baseHist.slice();
 function openHistory(){renderHistory();$('historyOverlay').classList.add('show');}
@@ -911,12 +912,12 @@ let members=[],mid=0,invitePage=1,inviteSize=20;
 let selected=new Set(),selectAllMode=false;
 
 function buildMembers(){
-  /* 平台已有成员：V1–V4 四次导入共 1,474 人；最新一批 V4（436 人）尚未发送邀请 */
-  const PENDING=436;
+  /* 平台已有成员：V1–V5 五次导入共 3,346 人；最新两批 V4(436)+V5(772) 尚未发送邀请 */
+  const PENDING=1208;
   const SENT_BATCH=[
-    {n:116,at:'2026-07-03 09:'},   /* V3 补录 */
-    {n:318,at:'2026-06-18 16:'},   /* V2 研发中心 */
-    {n:602,at:'2026-06-05 11:'}    /* V1 初始版（另含下方 2 位早期成员） */
+    {n:316,at:'2026-07-03 09:'},   /* V3 补录 */
+    {n:618,at:'2026-06-18 16:'},   /* V2 研发中心 */
+    {n:1202,at:'2026-06-05 11:'}   /* V1 初始版（另含下方 2 位早期成员） */
   ];
   for(let i=0;i<PENDING;i++){
     const g=gen(5000+i);
