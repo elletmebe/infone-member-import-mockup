@@ -908,7 +908,7 @@ function renderHistory(){
 }
 
 /* ================= 邀请 ================= */
-let members=[],mid=0,invitePage=1,inviteSize=20;
+let members=[],mid=0,invitePage=1,inviteSize=20,sendAll=false;
 let selected=new Set(),selectAllMode=false;
 
 function buildMembers(){
@@ -1018,7 +1018,7 @@ function toggleAllOnPage(c){
   list.forEach(m=>c?selected.add(m.id):selected.delete(m.id));
   renderInviteTable();
 }
-function selectAllAndSend(){selectAllMode=true;renderInviteTable();openSendModal();}
+function selectAllAndSend(){sendAll=true;showSendModal();}   /* 不动主表勾选态，仅把发送目标设为全部待发送 */
 function clearSelection(){selected.clear();selectAllMode=false;renderInviteTable(true);}
 function selectedCount(){return selectAllMode?matchingPending().length:selected.size;}
 function updateSelectionUI(pageSel){
@@ -1031,16 +1031,17 @@ function updateSelectionUI(pageSel){
   allBtn.title=totalPending?'选中当前筛选下全部 '+totalPending+' 位待发送成员，并发送邀请邮件':'当前没有待发送成员';
   $('selHint').textContent=n?'已选择 '+n+' 位成员':'未选择成员';
 }
-function openSendModal(){
-  $('modalCount').textContent=selectedCount();
+function openSendModal(){sendAll=false;showSendModal();}      /* 「发送邀请」：按当前勾选 */
+function showSendModal(){
+  $('modalCount').textContent=sendAll?matchingPending().length:selectedCount();
   $('sendConfig').style.display='block';
   $('progressView').classList.remove('show');
   $('barFill').style.width='0%';
   $('sendOverlay').classList.add('show');
 }
-function closeSendModal(){$('sendOverlay').classList.remove('show');}
+function closeSendModal(){$('sendOverlay').classList.remove('show');sendAll=false;}
 function startSending(){
-  const targets=selectAllMode?matchingPending():members.filter(m=>selected.has(m.id));
+  const targets=(sendAll||selectAllMode)?matchingPending():members.filter(m=>selected.has(m.id));
   const target=targets.length;
   $('sendConfig').style.display='none';
   $('progressView').classList.add('show');
@@ -1054,7 +1055,7 @@ function startSending(){
       setTimeout(()=>{
         const stamp=nowStamp();
         targets.forEach(m=>{m.status='sent';m.sentAt=stamp;});
-        selected.clear();selectAllMode=false;
+        selected.clear();selectAllMode=false;sendAll=false;
         renderInviteTable(true);closeSendModal();
         toast('已向 '+target+' 位成员发送邀请邮件','success');
       },280);
